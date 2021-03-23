@@ -11,7 +11,9 @@ const Display = (props) => {
 
     const { displayFunc } = props;
     const handleClick = () => {
+        // setShow({seasons:[]})
         fetchShow().then(data => {
+            // console.log(data)
             setShow(data);
 
             if (displayFunc) {

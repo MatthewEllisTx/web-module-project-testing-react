@@ -1,27 +1,75 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import Show from './../Show';
 
-const testShow = {
-    //add in approprate test data structure here.
-}
+import testData from './ShowTestData'
+
+// const testShow = {
+//   //add in approprate test data structure here.
+  
+// }
 
 test('renders testShow and no selected Season without errors', ()=>{
+  render(<Show show={testData} selectedSeason={'none'}/>)
 });
 
 test('renders Loading component when prop show is null', () => {
+  render(<Show show={null}/>)
+  
+  expect(screen.getByText('Fetching data...')).toBeVisible()
 });
 
 test('renders same number of options seasons are passed in', ()=>{
+  render(<Show show={testData} selectedSeason={'none'}/>)
+  
+  expect(screen.getAllByTestId('season-option').length).toEqual(testData.seasons.length)
 });
 
 test('handleSelect is called when an season is selected', () => {
+  const mockHandleSelect = jest.fn()
+  
+  render(<Show show={testData} selectedSeason={'none'} handleSelect={mockHandleSelect} />)
+
+  const button = screen.getByLabelText('Select A Season')
+  const options = screen.getAllByTestId('season-option')
+
+  // console.log(mockHandleSelect.mock)
+  
+  options.forEach( opt => {
+    expect(opt.selected).toBe(false)
+  })
+  
+  // userEvent.selectOptions(button, 1) doesn't work for some reason.
+  // https://github.com/testing-library/user-event/issues/358
+  // found this, probably just outdaded package
+
+  fireEvent.change(button, {target: {value: '1'}} )
+
+  // console.log(mockHandleSelect.mock)
+
+  expect(mockHandleSelect.mock.calls.length).toEqual(1)
 });
 
 test('component renders when no seasons are selected and when rerenders with a season passed in', () => {
+  const mockHandleSelect = jest.fn()
+  
+  const { rerender } = render(<Show show={testData} selectedSeason={'none'} handleSelect={mockHandleSelect} />)
+
+  rerender(<Show show={testData} selectedSeason={'1'} handleSelect={mockHandleSelect} />)
+  
 });
+
+test('episode component DOES NOT render when the selectedSeason props is "none" and DOES render the episode component when the selectedSeason prop has a valid season index', () => {
+  const { rerender } = render(<Show show={testData} selectedSeason={'none'} />)
+  
+  expect(screen.queryByTestId('episodes-container')).not.toBeInTheDocument()
+  
+  rerender(<Show show={testData} selectedSeason={'1'} />)
+  
+  expect(screen.queryByTestId('episodes-container')).toBeInTheDocument()
+})
 
 //Tasks:
 //1. Build an example data structure that contains the show data in the correct format. A show should contain a name, a summary and an array of seasons, each with a id, name and (empty) list of episodes within them. Use console.logs within the client code if you need to to verify the structure of show data.
